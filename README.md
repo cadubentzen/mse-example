@@ -36,8 +36,3 @@ for i in [1 ... 5]:
 ```
 
 However, this is async in JS, so there are callbacks involved in there. One can see this flow by looking at the browser console output.
-
-
-## TODO
-
-- Video only for now. Add audio.

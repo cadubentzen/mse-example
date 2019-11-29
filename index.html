@@ -12,14 +12,20 @@
 
   <script type="text/javascript">
     (function() {
-      var baseUrl = 'http://0.0.0.0:8000/media/video/$Quality$/';
+      var baseUrl = 'media/video/$Quality$/';
       var templateUrl = baseUrl + 'seg-$Number$.m4f';
+
+      var audioBaseUrl = 'media/audio/en/';
+      var audioTemplateUrl = audioBaseUrl + 'seg-$Number$.m4f';
+
       var sourceBuffer;
+      var audioSourceBuffer;
 
       var quality = 1;
       var numberOfQualities = 5;
 
       var index = 1;
+      var audioIndex = 1;
       var numberOfChunks = 245;
       var video = document.querySelector('video');
 
@@ -37,6 +43,12 @@
         sourceBuffer.addEventListener('updateend', nextSegment);
         var initUrl = baseUrl.replace('$Quality$', quality) + 'init.mp4';
         GET(initUrl, appendToBuffer);
+
+        audioSourceBuffer = ms.addSourceBuffer('audio/mp4; codecs="mp4a.40.2"');
+        audioSourceBuffer.addEventListener('updateend', nextAudioSegment);
+        var audioInitUrl = audioBaseUrl + 'init.mp4';
+        GET(audioInitUrl, appendToAudioBuffer);
+
         video.play();
       }
 
@@ -56,9 +68,24 @@
         }
       }
 
+      function nextAudioSegment() {
+        var url = audioTemplateUrl.replace('$Number$', audioIndex);
+        GET(url, appendToAudioBuffer);
+        audioIndex++;
+        if (audioIndex >= numberOfChunks) {
+          audioSourceBuffer.removeEventListener('updateend', nextAudioSegment);
+        }
+      }
+
       function appendToBuffer(videoChunk) {
         if (videoChunk) {
           sourceBuffer.appendBuffer(new Uint8Array(videoChunk));
+        }
+      }
+
+      function appendToAudioBuffer(audioChunk) {
+        if (audioChunk) {
+          audioSourceBuffer.appendBuffer(new Uint8Array(audioChunk));
         }
       }
 
